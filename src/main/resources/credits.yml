@@ -1,0 +1,135 @@
+openapi: 3.0.0
+info:
+  title: Credits
+  description:
+    This application allows you to obtain the information about the credits.
+  version: 1.0.0
+servers:
+  - url: https://localhost:8081
+tags:
+  - name: credits
+    description: Everything about your credits.
+paths:
+  /credit:
+    post:
+      tags:
+        - credits
+      summary: Allows you to register a credit of a customer
+      description: Allows you to register a credit of a person or a company
+      operationId: createCredit
+      requestBody:
+        required: true
+        description: Allows to register a credit.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditRequestPaid'
+      responses:
+        '201':
+          description: Credit registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credit'
+        '400':
+          description: Credit request rejected
+
+    patch:
+      tags:
+        - credits
+      summary: Allows you to pay your credit.
+      description: allows you to pay your credit.
+      operationId: payCredit
+      requestBody:
+        required: true
+        description: Allows you to pay your credit.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditPaid'
+      responses:
+        '200':
+          description: The credit was paid correctly
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credit'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Customer or Credit number are invalid
+
+  /credit/customer/{customerDocument}:
+    get:
+      tags:
+        - credits
+      summary: Allows you to consult information about your credit.
+      description: Allows you to consult information about your credit like amounts.
+      operationId: consultCredit
+      parameters:
+        - name: customerDocument
+          in: path
+          description: Customer Document
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The consult was made correctly
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Credit'
+        '400':
+          description: Invalid Request
+        '404':
+          description: Customer or Card are invalid
+
+components:
+  schemas:
+    CreditRequestPaid:
+      required:
+        - creditAmount
+        - customerDocument
+      type: object
+      properties:
+        creditAmount:
+          type: number
+          format: double
+        customerDocument:
+          type: string
+    CreditPaid:
+      required:
+        - creditAmount
+        - creditNumber
+      type: object
+      properties:
+        creditAmount:
+          type: number
+          format: double
+        creditNumber:
+          type: string
+    Credit:
+      type: object
+      properties:
+        creditNumber:
+          type: string
+          description: Credit number
+        creditType:
+          type: string
+          description: Type of credit
+        creditAmount:
+          type: number
+          format: double
+        creditPendingPayment:
+          type: number
+          format: double
+        creditPaidAmount:
+          type: number
+          format: double
+        customerDocument:
+          type: string
+        creditDate:
+          type: string
+          format: date
