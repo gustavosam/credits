@@ -111,5 +111,10 @@ public class CreditServiceImpl implements CreditService{
         return (creditDocument.getCreditPendingPayment() - creditPayAmount) >= 0;
     }
 
+    @Override
+    public Boolean creditExist(String creditNumber) {
+        return creditRepository.existsById(creditNumber);
+    }
+
 
 }

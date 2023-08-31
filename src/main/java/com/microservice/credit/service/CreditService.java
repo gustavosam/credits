@@ -20,4 +20,6 @@ public interface CreditService {
     Credit payCredit(String creditNumber, Double creditPayAmount);
 
     Boolean validatePayCredit(String creditNumber, Double creditPayAmount);
+
+    Boolean creditExist(String creditNumber);
 }

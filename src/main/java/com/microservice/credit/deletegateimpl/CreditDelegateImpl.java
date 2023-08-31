@@ -62,8 +62,12 @@ public class CreditDelegateImpl implements CreditApiDelegate {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ClaseError.getInstance("Ingrese el monto del crédito"));
         }
 
-        if(creditPaid.getCreditNumber().isEmpty()){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ClaseError.getInstance("Ingrese el documento del cliente"));
+        if(creditPaid.getCreditNumber() == null){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ClaseError.getInstance("Ingrese el número de crédito a pagar"));
+        }
+
+        if(! creditService.creditExist(creditPaid.getCreditNumber())){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ClaseError.getInstance("El número de crédito es invalido"));
         }
 
         if( !creditService.validatePayCredit(creditPaid.getCreditNumber(), creditPaid.getCreditAmount())){
