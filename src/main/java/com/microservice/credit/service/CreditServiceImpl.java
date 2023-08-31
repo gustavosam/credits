@@ -3,9 +3,11 @@ package com.microservice.credit.service;
 import com.microservice.credit.customer.CustomerFeignClient;
 import com.microservice.credit.documents.CreditDocument;
 import com.microservice.credit.documents.Customers;
+import com.microservice.credit.documents.MovementsDocuments;
 import com.microservice.credit.model.Credit;
 import com.microservice.credit.model.CreditRequestPaid;
 import com.microservice.credit.repository.CreditRepository;
+import com.microservice.credit.repository.MovementsRepository;
 import com.microservice.credit.service.mapper.CreditMappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,9 @@ public class CreditServiceImpl implements CreditService{
     @Autowired
     private CreditRepository creditRepository;
 
+    @Autowired
+    private MovementsRepository movementsRepository;
+
     @Override
     public Credit createCredit(Double amount, Customers customers) {
 
@@ -35,7 +40,19 @@ public class CreditServiceImpl implements CreditService{
         credit.setCustomerDocument(customers.getCustomerDocument());
         credit.setCreditDate(LocalDate.now());
 
-        return CreditMappers.mapCreditDocumentToCredit(creditRepository.save(credit)) ;
+        Credit newCredit = CreditMappers.mapCreditDocumentToCredit(creditRepository.save(credit));
+
+        //GUARDAR MOVIMIENTO DE LA CRECIÓN DE CRÉDITO
+        MovementsDocuments movementCredit = new MovementsDocuments();
+        movementCredit.setMovementType("ALTA CRÉDITO");
+        movementCredit.setCustomerDocument(customers.getCustomerDocument());
+        movementCredit.setCreditId(newCredit.getCreditNumber());
+        movementCredit.setAmount(amount);
+        movementCredit.setMovementDate(LocalDate.now());
+
+        movementsRepository.save(movementCredit);
+
+        return newCredit;
     }
 
     @Override
@@ -72,7 +89,19 @@ public class CreditServiceImpl implements CreditService{
         creditDocument.setCreditPaidAmount( creditDocument.getCreditPaidAmount() + creditPayAmount );
         creditDocument.setCreditPendingPayment( creditDocument.getCreditPendingPayment() - creditPayAmount );
 
-        return CreditMappers.mapCreditDocumentToCreditUpdate( creditRepository.save(creditDocument) );
+        Credit creditPaid = CreditMappers.mapCreditDocumentToCreditUpdate( creditRepository.save(creditDocument) );
+
+        //EL PAGO DEL CRÉDITO GENERA UN MOVIMIENTO
+        MovementsDocuments movementCredit = new MovementsDocuments();
+        movementCredit.setMovementType("PAGO CRÉDITO");
+        movementCredit.setCustomerDocument(creditDocument.getCustomerDocument());
+        movementCredit.setCreditId(creditDocument.getCreditNumber());
+        movementCredit.setAmount(creditPayAmount);
+        movementCredit.setMovementDate(LocalDate.now());
+
+        movementsRepository.save(movementCredit);
+
+        return creditPaid;
     }
 
     @Override
