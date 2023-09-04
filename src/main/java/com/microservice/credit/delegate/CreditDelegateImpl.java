@@ -5,7 +5,7 @@ import com.microservice.credit.model.Credit;
 import com.microservice.credit.model.CreditPay;
 import com.microservice.credit.model.CreditRequest;
 import com.microservice.credit.service.CreditService;
-import com.microservice.credit.util.Client;
+import com.microservice.credit.util.ClientDto;
 import com.microservice.credit.util.Constants;
 import com.microservice.credit.util.ErrorC;
 import java.util.List;
@@ -34,19 +34,19 @@ public class CreditDelegateImpl implements CreditApiDelegate {
       return ResponseEntity.badRequest().body(ErrorC.getInstance(Constants.AMOUNT_CREDIT_EMPTY));
     }
 
-    Client client = creditService.getClient(credit.getClientDocument());
+    ClientDto clientDto = creditService.getClient(credit.getClientDocument());
 
-    if (client.getClientType().equalsIgnoreCase(Constants.TYPE_CLIENT_COMPANY)) {
+    if (clientDto.getClientType().equalsIgnoreCase(Constants.TYPE_CLIENT_COMPANY)) {
       return ResponseEntity.status(HttpStatus.CREATED)
-              .body(creditService.createCredit(credit.getAmount(), client));
+              .body(creditService.createCredit(credit.getAmount(), clientDto));
     }
 
-    if (creditService.personalCreditExist(client)) {
+    if (creditService.personalCreditExist(clientDto)) {
       return ResponseEntity.badRequest().body(ErrorC.getInstance(Constants.CLIENT_HAS_CREDIT));
     }
 
     return ResponseEntity.status(HttpStatus.CREATED)
-            .body(creditService.createCredit(credit.getAmount(), client));
+            .body(creditService.createCredit(credit.getAmount(), clientDto));
   }
 
   @Override

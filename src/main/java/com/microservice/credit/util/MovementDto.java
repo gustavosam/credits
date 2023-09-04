@@ -9,7 +9,7 @@ import lombok.Setter;
  * */
 @Getter
 @Setter
-public class Movement {
+public class MovementDto {
 
   private Double amount;
 

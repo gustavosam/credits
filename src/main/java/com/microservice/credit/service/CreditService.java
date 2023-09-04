@@ -1,7 +1,7 @@
 package com.microservice.credit.service;
 
 import com.microservice.credit.model.Credit;
-import com.microservice.credit.util.Client;
+import com.microservice.credit.util.ClientDto;
 import com.microservice.credit.util.CreditDto;
 import java.util.List;
 
@@ -10,11 +10,11 @@ import java.util.List;
  * */
 public interface CreditService {
 
-  CreditDto createCredit(Double amount, Client client);
+  CreditDto createCredit(Double amount, ClientDto clientDto);
 
-  Client getClient(String clientDocument);
+  ClientDto getClient(String clientDocument);
 
-  Boolean personalCreditExist(Client calledCustomer);
+  Boolean personalCreditExist(ClientDto calledCustomer);
 
   List<Credit> getCredits(String clientDocument);
 

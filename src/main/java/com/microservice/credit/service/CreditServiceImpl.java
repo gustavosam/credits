@@ -7,7 +7,7 @@ import com.microservice.credit.model.Credit;
 import com.microservice.credit.repository.CreditRepository;
 import com.microservice.credit.service.mapper.MapperMovement;
 import com.microservice.credit.service.mapper.Mappers;
-import com.microservice.credit.util.Client;
+import com.microservice.credit.util.ClientDto;
 import com.microservice.credit.util.Constants;
 import com.microservice.credit.util.CreditDto;
 import java.time.LocalDate;
@@ -34,34 +34,34 @@ public class CreditServiceImpl implements CreditService {
   private MovementFeignClient movementFeignClient;
 
   @Override
-  public CreditDto createCredit(Double amount, Client client) {
+  public CreditDto createCredit(Double amount, ClientDto clientDto) {
 
     CreditDocument credit = new CreditDocument();
-    credit.setCreditType(client.getClientType());
+    credit.setCreditType(clientDto.getClientType());
     credit.setCreditAmount(amount);
     credit.setPendingPay(amount);
     credit.setAmountPaid(0.0);
-    credit.setClientDocument(client.getDocument());
+    credit.setClientDocument(clientDto.getDocument());
     credit.setCreditDate(LocalDate.now());
 
     CreditDto newCredit = Mappers.mapCreditDocumentToCreditDto(creditRepository.save(credit));
     newCredit.setMessage(Constants.CREDIT_CREATED_OK);
 
     movementFeignClient.saveMovement(MapperMovement.setValues(
-                    amount, client.getDocument(),
+                    amount, clientDto.getDocument(),
                     newCredit.getCreditNumber(), Constants.CREATE_CREDIT));
 
     return newCredit;
   }
 
   @Override
-  public Client getClient(String clientDocument) {
+  public ClientDto getClient(String clientDocument) {
 
     return clientFeignClient.getClient(clientDocument);
   }
 
   @Override
-  public Boolean personalCreditExist(Client calledCustomer) {
+  public Boolean personalCreditExist(ClientDto calledCustomer) {
 
     List<CreditDocument> creditList = creditRepository
             .findByClientDocument(calledCustomer.getDocument());

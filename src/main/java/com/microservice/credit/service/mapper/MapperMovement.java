@@ -1,6 +1,6 @@
 package com.microservice.credit.service.mapper;
 
-import com.microservice.credit.util.Movement;
+import com.microservice.credit.util.MovementDto;
 
 /**
  * Esta clase contiene un método que genera un objeto MovementsDocuments
@@ -13,15 +13,15 @@ public class MapperMovement {
    * Esta método recibe como parámetro información para guardar movimientos
    * Se obtienen todos los valores y se asignan a un objeto MovementsDocuments.
    * */
-  public static Movement setValues(Double amount, String clientDocument,
-                                   String creditNumber, String movementType) {
+  public static MovementDto setValues(Double amount, String clientDocument,
+                                      String creditNumber, String movementType) {
 
-    Movement movement = new Movement();
-    movement.setAmount(amount);
-    movement.setClientDocument(clientDocument);
-    movement.setCreditNumber(creditNumber);
-    movement.setMovementType(movementType);
+    MovementDto movementDto = new MovementDto();
+    movementDto.setAmount(amount);
+    movementDto.setClientDocument(clientDocument);
+    movementDto.setCreditNumber(creditNumber);
+    movementDto.setMovementType(movementType);
 
-    return movement;
+    return movementDto;
   }
 }

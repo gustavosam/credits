@@ -1,6 +1,6 @@
 package com.microservice.credit.feignclient;
 
-import com.microservice.credit.util.Client;
+import com.microservice.credit.util.ClientDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,5 +13,5 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface ClientFeignClient {
 
   @GetMapping("/client/{document}")
-   Client getClient(@PathVariable String document);
+  ClientDto getClient(@PathVariable String document);
 }
