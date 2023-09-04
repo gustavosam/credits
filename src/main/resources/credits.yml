@@ -23,7 +23,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreditRequestPaid'
+              $ref: '#/components/schemas/CreditRequest'
       responses:
         '201':
           description: Credit registered successfully
@@ -46,7 +46,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreditPaid'
+              $ref: '#/components/schemas/CreditPay'
       responses:
         '200':
           description: The credit was paid correctly
@@ -59,7 +59,7 @@ paths:
         '404':
           description: Customer or Credit number are invalid
 
-  /credit/customer/{customerDocument}:
+  /credit/client/{clientDocument}:
     get:
       tags:
         - credits
@@ -67,9 +67,9 @@ paths:
       description: Allows you to consult information about your credit like amounts.
       operationId: consultCredit
       parameters:
-        - name: customerDocument
+        - name: clientDocument
           in: path
-          description: Customer Document
+          description: Client Document
           required: true
           schema:
             type: string
@@ -88,24 +88,24 @@ paths:
 
 components:
   schemas:
-    CreditRequestPaid:
+    CreditRequest:
       required:
-        - creditAmount
-        - customerDocument
+        - amount
+        - clientDocument
       type: object
       properties:
-        creditAmount:
+        amount:
           type: number
           format: double
-        customerDocument:
+        clientDocument:
           type: string
-    CreditPaid:
+    CreditPay:
       required:
-        - creditAmount
+        - amount
         - creditNumber
       type: object
       properties:
-        creditAmount:
+        amount:
           type: number
           format: double
         creditNumber:
@@ -113,23 +113,6 @@ components:
     Credit:
       type: object
       properties:
-        creditNumber:
+        message:
           type: string
-          description: Credit number
-        creditType:
-          type: string
-          description: Type of credit
-        creditAmount:
-          type: number
-          format: double
-        creditPendingPayment:
-          type: number
-          format: double
-        creditPaidAmount:
-          type: number
-          format: double
-        customerDocument:
-          type: string
-        creditDate:
-          type: string
-          format: date
+

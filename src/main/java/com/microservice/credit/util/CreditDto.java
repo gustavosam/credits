@@ -1,20 +1,18 @@
-package com.microservice.credit.documents;
+package com.microservice.credit.util;
 
+import com.microservice.credit.model.Credit;
 import java.time.LocalDate;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * Esta clase representa una colección en la base de mongo.
+ * Esta clase extiende de Credit y añadirá atributos que se mostrarán en la consulta
+ * del servicio.
  * */
-@Document(collection = "credits")
 @Getter
 @Setter
-public class CreditDocument {
+public class CreditDto extends Credit {
 
-  @Id
   private String creditNumber;
 
   private String creditType;
@@ -28,5 +26,4 @@ public class CreditDocument {
   private String clientDocument;
 
   private LocalDate creditDate;
-
 }

@@ -1,25 +1,26 @@
 package com.microservice.credit.service;
 
-import com.microservice.credit.documents.Customers;
 import com.microservice.credit.model.Credit;
-import com.microservice.credit.model.CreditRequestPaid;
-import org.springframework.http.ResponseEntity;
-
+import com.microservice.credit.util.Client;
+import com.microservice.credit.util.CreditDto;
 import java.util.List;
 
+/**
+ * Esta interfaz contiene los métodos que implementará CreditServiceImpl.
+ * */
 public interface CreditService {
 
-    Credit createCredit(Double amount, Customers customers);
+  CreditDto createCredit(Double amount, Client client);
 
-    Customers clientExist(String customerDocument);
+  Client getClient(String clientDocument);
 
-    Boolean validateGenerateCredit(Customers calledCustomer);
+  Boolean personalCreditExist(Client calledCustomer);
 
-    List<Credit> getCredits(String customerDocument);
+  List<Credit> getCredits(String clientDocument);
 
-    Credit payCredit(String creditNumber, Double creditPayAmount);
+  CreditDto payCredit(String creditNumber, Double amount);
 
-    Boolean validatePayCredit(String creditNumber, Double creditPayAmount);
+  Boolean validateOverPayment(String creditNumber, Double amount);
 
-    Boolean creditExist(String creditNumber);
+  Boolean creditExist(String creditNumber);
 }

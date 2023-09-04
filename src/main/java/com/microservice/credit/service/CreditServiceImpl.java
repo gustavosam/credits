@@ -1,120 +1,116 @@
 package com.microservice.credit.service;
 
-import com.microservice.credit.customer.CustomerFeignClient;
 import com.microservice.credit.documents.CreditDocument;
-import com.microservice.credit.documents.Customers;
-import com.microservice.credit.documents.MovementsDocuments;
+import com.microservice.credit.feignclient.ClientFeignClient;
+import com.microservice.credit.feignclient.MovementFeignClient;
 import com.microservice.credit.model.Credit;
-import com.microservice.credit.model.CreditRequestPaid;
 import com.microservice.credit.repository.CreditRepository;
-import com.microservice.credit.repository.MovementsRepository;
-import com.microservice.credit.service.mapper.CreditMappers;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-
+import com.microservice.credit.service.mapper.MapperMovement;
+import com.microservice.credit.service.mapper.Mappers;
+import com.microservice.credit.util.Client;
+import com.microservice.credit.util.Constants;
+import com.microservice.credit.util.CreditDto;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+
+/**
+ * Esta clase implementará los métodos de la interfaz CreditService.
+ * La clase contendrá la lógica de negocio para el servicio.
+ * */
 @Service
-public class CreditServiceImpl implements CreditService{
+public class CreditServiceImpl implements CreditService {
 
-    @Autowired
-    private CustomerFeignClient customerFeignClient;
+  @Autowired
+  private ClientFeignClient clientFeignClient;
 
-    @Autowired
-    private CreditRepository creditRepository;
+  @Autowired
+  private CreditRepository creditRepository;
 
-    @Autowired
-    private MovementsRepository movementsRepository;
+  @Autowired
+  private MovementFeignClient movementFeignClient;
 
-    @Override
-    public Credit createCredit(Double amount, Customers customers) {
+  @Override
+  public CreditDto createCredit(Double amount, Client client) {
 
-        CreditDocument credit = new CreditDocument();
-        credit.setCreditType(customers.getCustomerType());
-        credit.setCreditAmount(amount);
-        credit.setCreditPendingPayment(amount);
-        credit.setCreditPaidAmount(0.0);
-        credit.setCustomerDocument(customers.getCustomerDocument());
-        credit.setCreditDate(LocalDate.now());
+    CreditDocument credit = new CreditDocument();
+    credit.setCreditType(client.getClientType());
+    credit.setCreditAmount(amount);
+    credit.setPendingPay(amount);
+    credit.setAmountPaid(0.0);
+    credit.setClientDocument(client.getDocument());
+    credit.setCreditDate(LocalDate.now());
 
-        Credit newCredit = CreditMappers.mapCreditDocumentToCredit(creditRepository.save(credit));
+    CreditDto newCredit = Mappers.mapCreditDocumentToCreditDto(creditRepository.save(credit));
+    newCredit.setMessage(Constants.CREDIT_CREATED_OK);
 
-        //GUARDAR MOVIMIENTO DE LA CRECIÓN DE CRÉDITO
-        MovementsDocuments movementCredit = new MovementsDocuments();
-        movementCredit.setMovementType("ALTA CRÉDITO");
-        movementCredit.setCustomerDocument(customers.getCustomerDocument());
-        movementCredit.setCreditId(newCredit.getCreditNumber());
-        movementCredit.setAmount(amount);
-        movementCredit.setMovementDate(LocalDate.now());
+    movementFeignClient.saveMovement(MapperMovement.setValues(
+                    amount, client.getDocument(),
+                    newCredit.getCreditNumber(), Constants.CREATE_CREDIT));
 
-        movementsRepository.save(movementCredit);
+    return newCredit;
+  }
 
-        return newCredit;
+  @Override
+  public Client getClient(String clientDocument) {
+
+    return clientFeignClient.getClient(clientDocument);
+  }
+
+  @Override
+  public Boolean personalCreditExist(Client calledCustomer) {
+
+    List<CreditDocument> creditList = creditRepository
+            .findByClientDocument(calledCustomer.getDocument());
+
+    return !creditList.isEmpty();
+  }
+
+  @Override
+  public List<Credit> getCredits(String clientDocument) {
+
+    List<CreditDocument> creditList = creditRepository.findByClientDocument(clientDocument);
+
+    if (creditList.isEmpty()) {
+      return new ArrayList<>();
     }
 
-    @Override
-    public Customers clientExist(String customerDocument) {
+    return Mappers.mapListCreditDocToListCredit(creditList);
+  }
 
-        return customerFeignClient.getCustomerById(customerDocument);
-    }
+  @Override
+  public CreditDto payCredit(String creditNumber, Double amount) {
 
-    @Override
-    public Boolean validateGenerateCredit(Customers calledCustomer) {
+    CreditDocument creditDoc = creditRepository.findByCreditNumber(creditNumber);
 
-        List<CreditDocument> creditList = creditRepository.findByCustomerDocument(calledCustomer.getCustomerDocument());
+    creditDoc.setAmountPaid(creditDoc.getAmountPaid() + amount);
+    creditDoc.setPendingPay(creditDoc.getPendingPay() - amount);
 
-        return creditList.isEmpty();
-    }
+    CreditDto creditPaid = Mappers.mapCreditDocumentToCreditDto(creditRepository.save(creditDoc));
+    creditPaid.setMessage(Constants.CREDIT_PAID_OK);
 
-    @Override
-    public List<Credit> getCredits(String customerDocument) {
+    movementFeignClient
+            .saveMovement(MapperMovement.setValues(
+                    amount, creditDoc.getClientDocument(),
+                    creditDoc.getCreditNumber(), Constants.PAY_CREDIT));
 
-        List<CreditDocument> creditList = creditRepository.findByCustomerDocument(customerDocument);
+    return creditPaid;
+  }
 
-        if(creditList.isEmpty()){
-            return new ArrayList<>();
-        }
+  @Override
+  public Boolean validateOverPayment(String creditNumber, Double amount) {
+    CreditDocument creditDocument = creditRepository.findByCreditNumber(creditNumber);
 
-        return CreditMappers.mapListCreditDocumentToListCredit(creditList);
-    }
+    return (creditDocument.getPendingPay() - amount) < 0;
+  }
 
-    @Override
-    public Credit payCredit(String creditNumber, Double creditPayAmount) {
-
-        CreditDocument creditDocument = creditRepository.findByCreditNumber(creditNumber);
-
-        creditDocument.setCreditPaidAmount( creditDocument.getCreditPaidAmount() + creditPayAmount );
-        creditDocument.setCreditPendingPayment( creditDocument.getCreditPendingPayment() - creditPayAmount );
-
-        Credit creditPaid = CreditMappers.mapCreditDocumentToCreditUpdate( creditRepository.save(creditDocument) );
-
-        //EL PAGO DEL CRÉDITO GENERA UN MOVIMIENTO
-        MovementsDocuments movementCredit = new MovementsDocuments();
-        movementCredit.setMovementType("PAGO CRÉDITO");
-        movementCredit.setCustomerDocument(creditDocument.getCustomerDocument());
-        movementCredit.setCreditId(creditDocument.getCreditNumber());
-        movementCredit.setAmount(creditPayAmount);
-        movementCredit.setMovementDate(LocalDate.now());
-
-        movementsRepository.save(movementCredit);
-
-        return creditPaid;
-    }
-
-    @Override
-    public Boolean validatePayCredit(String creditNumber, Double creditPayAmount) {
-        CreditDocument creditDocument = creditRepository.findByCreditNumber(creditNumber);
-
-        return (creditDocument.getCreditPendingPayment() - creditPayAmount) >= 0;
-    }
-
-    @Override
-    public Boolean creditExist(String creditNumber) {
-        return creditRepository.existsById(creditNumber);
-    }
+  @Override
+  public Boolean creditExist(String creditNumber) {
+    return creditRepository.existsById(creditNumber);
+  }
 
 
 }
