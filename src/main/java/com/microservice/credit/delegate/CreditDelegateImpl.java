@@ -26,7 +26,7 @@ public class CreditDelegateImpl implements CreditApiDelegate {
   @Override
   public ResponseEntity<Credit> createCredit(CreditRequest credit) {
 
-    if (credit.getClientDocument() == null) {
+    if (credit.getClientDocument() == null || credit.getClientDocument().isEmpty()) {
       return ResponseEntity.badRequest().body(ErrorC.getInstance(Constants.DOCUMENT_EMPTY));
     }
 
