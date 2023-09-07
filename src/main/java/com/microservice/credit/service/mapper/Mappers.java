@@ -14,18 +14,6 @@ import java.util.stream.Collectors;
 public class Mappers {
 
   /**
-   * Este método convierte la clase CreditRequest en CreditDocument.
-   * */
-  public static CreditDocument mapCreditRequestToCreditDocument(CreditRequest creditRequestPaid) {
-
-    CreditDocument creditDocument = new CreditDocument();
-    creditDocument.setCreditAmount(creditRequestPaid.getAmount());
-    creditDocument.setClientDocument(creditRequestPaid.getClientDocument());
-
-    return creditDocument;
-  }
-
-  /**
    * Este método convierte la clase CreditDocument en CreditDto.
    * */
   public static CreditDto mapCreditDocumentToCreditDto(CreditDocument creditDocument) {

@@ -5,7 +5,8 @@ import com.microservice.credit.feignclient.ClientFeignClient;
 import com.microservice.credit.feignclient.MovementFeignClient;
 import com.microservice.credit.model.Credit;
 import com.microservice.credit.repository.CreditRepository;
-import com.microservice.credit.service.mapper.MapperMovement;
+import com.microservice.credit.service.mapper.MapCredit;
+import com.microservice.credit.service.mapper.MapMovement;
 import com.microservice.credit.service.mapper.Mappers;
 import com.microservice.credit.util.ClientDto;
 import com.microservice.credit.util.Constants;
@@ -33,6 +34,12 @@ public class CreditServiceImpl implements CreditService {
   @Autowired
   private MovementFeignClient movementFeignClient;
 
+  @Autowired
+  private MapMovement mapMovement;
+
+  @Autowired
+  private MapCredit mapCredit;
+
   @Override
   public CreditDto createCredit(Double amount, ClientDto clientDto) {
 
@@ -44,10 +51,10 @@ public class CreditServiceImpl implements CreditService {
     credit.setClientDocument(clientDto.getDocument());
     credit.setCreditDate(LocalDate.now());
 
-    CreditDto newCredit = Mappers.mapCreditDocumentToCreditDto(creditRepository.save(credit));
+    CreditDto newCredit = mapCredit.mapCreditDocumentToCreditDto(creditRepository.save(credit));
     newCredit.setMessage(Constants.CREDIT_CREATED_OK);
 
-    movementFeignClient.saveMovement(MapperMovement.setValues(
+    movementFeignClient.saveMovement(mapMovement.setValues(
                     amount, clientDto.getDocument(),
                     newCredit.getCreditNumber(), Constants.CREATE_CREDIT));
 
@@ -89,11 +96,11 @@ public class CreditServiceImpl implements CreditService {
     creditDoc.setAmountPaid(creditDoc.getAmountPaid() + amount);
     creditDoc.setPendingPay(creditDoc.getPendingPay() - amount);
 
-    CreditDto creditPaid = Mappers.mapCreditDocumentToCreditDto(creditRepository.save(creditDoc));
+    CreditDto creditPaid = mapCredit.mapCreditDocumentToCreditDto(creditRepository.save(creditDoc));
     creditPaid.setMessage(Constants.CREDIT_PAID_OK);
 
     movementFeignClient
-            .saveMovement(MapperMovement.setValues(
+            .saveMovement(mapMovement.setValues(
                     amount, creditDoc.getClientDocument(),
                     creditDoc.getCreditNumber(), Constants.PAY_CREDIT));
 
