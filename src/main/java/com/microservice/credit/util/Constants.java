@@ -15,6 +15,10 @@ public class Constants {
 
   public static final String TYPE_CLIENT_COMPANY = "COMPANY";
 
+  public static final String TYPE_CLIENT_PYME = "PYME";
+
+  public static final String TYPE_CLIENT_VIP = "VIP";
+
   public static final String CLIENT_HAS_CREDIT = "El cliente PERSONAL ya cuenta con un crédito";
 
   public static final String OVERPAYMENT = "Verifica tu deuda, estás pagando de más";

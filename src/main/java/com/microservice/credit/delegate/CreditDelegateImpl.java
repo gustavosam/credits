@@ -36,7 +36,10 @@ public class CreditDelegateImpl implements CreditApiDelegate {
 
     ClientDto clientDto = creditService.getClient(credit.getClientDocument());
 
-    if (clientDto.getClientType().equalsIgnoreCase(Constants.TYPE_CLIENT_COMPANY)) {
+    if (clientDto.getClientType().equalsIgnoreCase(Constants.TYPE_CLIENT_COMPANY)
+            || clientDto.getClientType().equalsIgnoreCase(Constants.TYPE_CLIENT_PYME)
+            || clientDto.getClientType().equalsIgnoreCase(Constants.TYPE_CLIENT_VIP)) {
+
       return ResponseEntity.status(HttpStatus.CREATED)
               .body(creditService.createCredit(credit.getAmount(), clientDto));
     }

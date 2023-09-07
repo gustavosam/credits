@@ -43,13 +43,10 @@ public class CreditServiceImpl implements CreditService {
   @Override
   public CreditDto createCredit(Double amount, ClientDto clientDto) {
 
-    CreditDocument credit = new CreditDocument();
-    credit.setCreditType(clientDto.getClientType());
-    credit.setCreditAmount(amount);
-    credit.setPendingPay(amount);
+    CreditDocument credit = mapCredit.mapClientDtoToCreditDoc(clientDto, amount);
     credit.setAmountPaid(0.0);
-    credit.setClientDocument(clientDto.getDocument());
     credit.setCreditDate(LocalDate.now());
+
 
     CreditDto newCredit = mapCredit.mapCreditDocumentToCreditDto(creditRepository.save(credit));
     newCredit.setMessage(Constants.CREDIT_CREATED_OK);
