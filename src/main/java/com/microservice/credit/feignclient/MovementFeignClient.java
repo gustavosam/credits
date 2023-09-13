@@ -10,6 +10,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 @FeignClient(name = "ms-movements", url = "localhost:8084")
 public interface MovementFeignClient {
 
-  @PostMapping("/movement")
+  @PostMapping(value = "/movement", consumes = "application/json")
   void saveMovement(MovementDto movementDto);
 }

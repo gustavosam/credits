@@ -3,24 +3,25 @@ package com.microservice.credit.service;
 import com.microservice.credit.model.Credit;
 import com.microservice.credit.util.ClientDto;
 import com.microservice.credit.util.CreditDto;
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Esta interfaz contiene los métodos que implementará CreditServiceImpl.
  * */
 public interface CreditService {
 
-  CreditDto createCredit(Double amount, ClientDto clientDto);
+  Mono<CreditDto> createCredit(Double amount, ClientDto clientDto);
 
   ClientDto getClient(String clientDocument);
 
-  Boolean personalCreditExist(ClientDto calledCustomer);
+  Mono<Boolean> personalCreditExist(ClientDto calledCustomer);
 
-  List<Credit> getCredits(String clientDocument);
+  Flux<Credit> getCredits(String clientDocument);
 
-  CreditDto payCredit(String creditNumber, Double amount);
+  Mono<CreditDto> payCredit(String creditNumber, Double amount);
 
-  Boolean validateOverPayment(String creditNumber, Double amount);
+  Mono<Boolean> validateOverPayment(String creditNumber, Double amount);
 
-  Boolean creditExist(String creditNumber);
+  Mono<Boolean> creditExist(String creditNumber);
 }

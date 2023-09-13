@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 
 /**
@@ -41,21 +43,36 @@ public class CreditServiceImpl implements CreditService {
   private MapCredit mapCredit;
 
   @Override
-  public CreditDto createCredit(Double amount, ClientDto clientDto) {
+  public Mono<CreditDto> createCredit(Double amount, ClientDto clientDto) {
 
     CreditDocument credit = mapCredit.mapClientDtoToCreditDoc(clientDto, amount);
     credit.setAmountPaid(0.0);
     credit.setCreditDate(LocalDate.now());
 
+    Mono<CreditDocument> creditDocumentMono = creditRepository.save(credit);
 
-    CreditDto newCredit = mapCredit.mapCreditDocumentToCreditDto(creditRepository.save(credit));
+
+    return creditDocumentMono.map(creditDocument -> {
+
+      CreditDto newCredit = mapCredit.mapCreditDocumentToCreditDto(creditDocument);
+      newCredit.setMessage(Constants.CREDIT_CREATED_OK);
+
+      movementFeignClient.saveMovement(mapMovement.setValues(
+              amount, clientDto.getDocument(),
+              newCredit.getCreditNumber(), Constants.CREATE_CREDIT));
+
+      return newCredit;
+    });
+
+
+    /*CreditDto newCredit = mapCredit.mapCreditDocumentToCreditDto(creditRepository.save(credit));
     newCredit.setMessage(Constants.CREDIT_CREATED_OK);
 
     movementFeignClient.saveMovement(mapMovement.setValues(
                     amount, clientDto.getDocument(),
                     newCredit.getCreditNumber(), Constants.CREATE_CREDIT));
 
-    return newCredit;
+    return newCredit;*/
   }
 
   @Override
@@ -65,54 +82,69 @@ public class CreditServiceImpl implements CreditService {
   }
 
   @Override
-  public Boolean personalCreditExist(ClientDto calledCustomer) {
+  public Mono<Boolean> personalCreditExist(ClientDto calledCustomer) {
 
-    List<CreditDocument> creditList = creditRepository
+    Flux<CreditDocument> creditFlux = creditRepository
             .findByClientDocument(calledCustomer.getDocument());
 
-    return !creditList.isEmpty();
+    return creditFlux.hasElements();
+
+    //return !creditList.isEmpty();
   }
 
   @Override
-  public List<Credit> getCredits(String clientDocument) {
+  public Flux<Credit> getCredits(String clientDocument) {
 
-    List<CreditDocument> creditList = creditRepository.findByClientDocument(clientDocument);
+    Flux<CreditDocument> creditFlux = creditRepository.findByClientDocument(clientDocument);
 
-    if (creditList.isEmpty()) {
+    //return creditFlux.map(Mappers::mapCreditDocumentToCreditDto);
+
+    return creditFlux.map(creditDocument -> mapCredit.mapCreditDocumentToCreditDto(creditDocument));
+    /*if (creditList.isEmpty()) {
       return new ArrayList<>();
     }
 
-    return Mappers.mapListCreditDocToListCredit(creditList);
+    return Mappers.mapListCreditDocToListCredit(creditList);*/
   }
 
   @Override
-  public CreditDto payCredit(String creditNumber, Double amount) {
+  public Mono<CreditDto> payCredit(String creditNumber, Double amount) {
 
-    CreditDocument creditDoc = creditRepository.findByCreditNumber(creditNumber);
+    Mono<CreditDocument> creditDoc = creditRepository.findByCreditNumber(creditNumber);
 
-    creditDoc.setAmountPaid(creditDoc.getAmountPaid() + amount);
-    creditDoc.setPendingPay(creditDoc.getPendingPay() - amount);
+    Mono<CreditDocument> creditDocUpdated = creditDoc.flatMap(creditDocument -> {
 
-    CreditDto creditPaid = mapCredit.mapCreditDocumentToCreditDto(creditRepository.save(creditDoc));
-    creditPaid.setMessage(Constants.CREDIT_PAID_OK);
+      creditDocument.setAmountPaid(creditDocument.getAmountPaid() + amount);
+      creditDocument.setPendingPay(creditDocument.getPendingPay() - amount);
+      return creditRepository.save(creditDocument);
 
-    movementFeignClient
-            .saveMovement(mapMovement.setValues(
-                    amount, creditDoc.getClientDocument(),
-                    creditDoc.getCreditNumber(), Constants.PAY_CREDIT));
+    });
 
-    return creditPaid;
+
+    return creditDocUpdated.map(creditUpdated -> {
+      CreditDto creditPaid = mapCredit.mapCreditDocumentToCreditDto(creditUpdated);
+      creditPaid.setMessage(Constants.CREDIT_PAID_OK);
+
+      movementFeignClient
+              .saveMovement(mapMovement.setValues(
+                      amount, creditUpdated.getClientDocument(),
+                      creditUpdated.getCreditNumber(), Constants.PAY_CREDIT));
+
+      return creditPaid;
+
+    });
   }
 
   @Override
-  public Boolean validateOverPayment(String creditNumber, Double amount) {
-    CreditDocument creditDocument = creditRepository.findByCreditNumber(creditNumber);
+  public Mono<Boolean> validateOverPayment(String creditNumber, Double amount) {
 
-    return (creditDocument.getPendingPay() - amount) < 0;
+    return creditRepository.findByCreditNumber(creditNumber)
+            .map(creditDocument -> (creditDocument.getPendingPay() - amount) < 0)
+            .defaultIfEmpty(false);
   }
 
   @Override
-  public Boolean creditExist(String creditNumber) {
+  public Mono<Boolean> creditExist(String creditNumber) {
     return creditRepository.existsById(creditNumber);
   }
 

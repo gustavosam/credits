@@ -16,7 +16,7 @@ public class Mappers {
   /**
    * Este método convierte la clase CreditDocument en CreditDto.
    * */
-  public static CreditDto mapCreditDocumentToCreditDto(CreditDocument creditDocument) {
+  public static Credit mapCreditDocumentToCreditDto(CreditDocument creditDocument) {
 
     CreditDto credit = new CreditDto();
     credit.setCreditNumber(creditDocument.getCreditNumber());
