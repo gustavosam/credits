@@ -13,7 +13,7 @@ public interface CreditService {
 
   Mono<CreditDto> createCredit(Double amount, ClientDto clientDto);
 
-  ClientDto getClient(String clientDocument);
+  Mono<ClientDto> getClient(String clientDocument);
 
   Mono<Boolean> personalCreditExist(ClientDto calledCustomer);
 

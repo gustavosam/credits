@@ -1,19 +1,17 @@
 package com.microservice.credit.service;
 
 import com.microservice.credit.documents.CreditDocument;
-import com.microservice.credit.feignclient.ClientFeignClient;
-import com.microservice.credit.feignclient.MovementFeignClient;
 import com.microservice.credit.model.Credit;
 import com.microservice.credit.repository.CreditRepository;
 import com.microservice.credit.service.mapper.MapCredit;
 import com.microservice.credit.service.mapper.MapMovement;
-import com.microservice.credit.service.mapper.Mappers;
 import com.microservice.credit.util.ClientDto;
 import com.microservice.credit.util.Constants;
 import com.microservice.credit.util.CreditDto;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+
+import com.microservice.credit.webclient.ClientWebClient;
+import com.microservice.credit.webclient.MovementWebClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -27,14 +25,20 @@ import reactor.core.publisher.Mono;
 @Service
 public class CreditServiceImpl implements CreditService {
 
+  //@Autowired
+  //private ClientFeignClient clientFeignClient;
+
   @Autowired
-  private ClientFeignClient clientFeignClient;
+  private ClientWebClient clientWebClient;
 
   @Autowired
   private CreditRepository creditRepository;
 
+  //@Autowired
+  //private MovementFeignClient movementFeignClient;
+
   @Autowired
-  private MovementFeignClient movementFeignClient;
+  private MovementWebClient movementWebClient;
 
   @Autowired
   private MapMovement mapMovement;
@@ -57,9 +61,9 @@ public class CreditServiceImpl implements CreditService {
       CreditDto newCredit = mapCredit.mapCreditDocumentToCreditDto(creditDocument);
       newCredit.setMessage(Constants.CREDIT_CREATED_OK);
 
-      movementFeignClient.saveMovement(mapMovement.setValues(
+      movementWebClient.saveMovement(mapMovement.setValues(
               amount, clientDto.getDocument(),
-              newCredit.getCreditNumber(), Constants.CREATE_CREDIT));
+              newCredit.getCreditNumber(), Constants.CREATE_CREDIT)).subscribe();
 
       return newCredit;
     });
@@ -76,9 +80,9 @@ public class CreditServiceImpl implements CreditService {
   }
 
   @Override
-  public ClientDto getClient(String clientDocument) {
+  public Mono<ClientDto> getClient(String clientDocument) {
 
-    return clientFeignClient.getClient(clientDocument);
+    return clientWebClient.getClient(clientDocument);
   }
 
   @Override
@@ -125,10 +129,10 @@ public class CreditServiceImpl implements CreditService {
       CreditDto creditPaid = mapCredit.mapCreditDocumentToCreditDto(creditUpdated);
       creditPaid.setMessage(Constants.CREDIT_PAID_OK);
 
-      movementFeignClient
+      movementWebClient
               .saveMovement(mapMovement.setValues(
                       amount, creditUpdated.getClientDocument(),
-                      creditUpdated.getCreditNumber(), Constants.PAY_CREDIT));
+                      creditUpdated.getCreditNumber(), Constants.PAY_CREDIT)).subscribe();
 
       return creditPaid;
 
