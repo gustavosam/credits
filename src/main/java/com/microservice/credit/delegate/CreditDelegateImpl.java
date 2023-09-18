@@ -52,6 +52,10 @@ public class CreditDelegateImpl implements CreditApiDelegate {
           return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorC.getInstance(Constants.CLIENT_NOT_EXIST)));
         }
 
+        if(clientDto.getExpiredDebt()){
+          return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorC.getInstance(Constants.DEBT_EXIST)));
+        }
+
         if(clientDto.getClientType().equalsIgnoreCase(Constants.TYPE_CLIENT_COMPANY)
                 || clientDto.getClientType().equalsIgnoreCase(Constants.TYPE_CLIENT_PYME)
                 || clientDto.getClientType().equalsIgnoreCase(Constants.TYPE_CLIENT_VIP)){

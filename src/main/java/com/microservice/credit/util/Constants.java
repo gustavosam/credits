@@ -9,6 +9,8 @@ public class Constants {
 
   public static final String AMOUNT_CREDIT_EMPTY = "El monto del crédito no puede estar vacío";
 
+  public static final String DEBT_EXIST = "Usted tiene una deuda vencida";
+
   public static final String CREDIT_NUMBER_EMPTY = "El número del crédito no puede estar vacío";
 
   public static final String CREDIT_NUMBER_INVALID = "El número del crédito no existe";

@@ -22,5 +22,7 @@ public class ClientDto {
 
   private Boolean isActive;
 
+  private Boolean expiredDebt;
+
   private LocalDate clientCreationDate;
 }
