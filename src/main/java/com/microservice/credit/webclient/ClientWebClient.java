@@ -23,7 +23,7 @@ public class ClientWebClient {
   /**
    * Se comunica con el microservicio de cliente.
    * */
-  @CircuitBreaker(name = "myCircuitBreaker", fallbackMethod = "fallbackMethod")
+  @CircuitBreaker(name = "circuitBreakerClient", fallbackMethod = "fallbackMethod")
   public Mono<ClientDto> getClient(String document) {
     return webClientBuilder.build()
             .get()
