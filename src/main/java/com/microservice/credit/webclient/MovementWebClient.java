@@ -7,13 +7,19 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+/**
+ * Clase para comunicación de microservicios.
+ * */
 @Component
 public class MovementWebClient {
 
   @Autowired
   private WebClient.Builder webClientBuilder;
 
-  public Mono<Void> saveMovement(MovementDto movementDto){
+  /**
+   * Se comunica con el microservicios de movimientos.
+   * */
+  public Mono<Void> saveMovement(MovementDto movementDto) {
     return webClientBuilder.build()
             .post()
             .uri("http://localhost:8084/movement")

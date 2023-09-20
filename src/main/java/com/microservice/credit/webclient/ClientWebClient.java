@@ -10,14 +10,21 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
+/**
+ * Realiza la comunicación con otros microservicios con web client.
+ * */
 @Component
 public class ClientWebClient {
 
   @Autowired
   private WebClient.Builder webClientBuilder;
 
+
+  /**
+   * Se comunica con el microservicio de cliente.
+   * */
   @CircuitBreaker(name = "myCircuitBreaker", fallbackMethod = "fallbackMethod")
-  public Mono<ClientDto> getClient(String document){
+  public Mono<ClientDto> getClient(String document) {
     return webClientBuilder.build()
             .get()
             .uri("http://localhost:8080/client/{document}", document)
@@ -34,10 +41,14 @@ public class ClientWebClient {
             });
   }
 
+
+  /**
+   * Método en caso falle la conexión con el microservicio cliente.
+   * */
   public Mono<ClientDto> fallbackMethod(String document, Exception ex) {
 
-   ClientDto clientDto = new ClientDto();
-   return Mono.just(clientDto);
+    ClientDto clientDto = new ClientDto();
+    return Mono.just(clientDto);
   }
 
 }

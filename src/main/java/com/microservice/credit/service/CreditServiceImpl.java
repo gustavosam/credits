@@ -8,10 +8,9 @@ import com.microservice.credit.service.mapper.MapMovement;
 import com.microservice.credit.util.ClientDto;
 import com.microservice.credit.util.Constants;
 import com.microservice.credit.util.CreditDto;
-import java.time.LocalDate;
-
 import com.microservice.credit.webclient.ClientWebClient;
 import com.microservice.credit.webclient.MovementWebClient;
+import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -25,17 +24,12 @@ import reactor.core.publisher.Mono;
 @Service
 public class CreditServiceImpl implements CreditService {
 
-  //@Autowired
-  //private ClientFeignClient clientFeignClient;
 
   @Autowired
   private ClientWebClient clientWebClient;
 
   @Autowired
   private CreditRepository creditRepository;
-
-  //@Autowired
-  //private MovementFeignClient movementFeignClient;
 
   @Autowired
   private MovementWebClient movementWebClient;
@@ -68,15 +62,6 @@ public class CreditServiceImpl implements CreditService {
       return newCredit;
     });
 
-
-    /*CreditDto newCredit = mapCredit.mapCreditDocumentToCreditDto(creditRepository.save(credit));
-    newCredit.setMessage(Constants.CREDIT_CREATED_OK);
-
-    movementFeignClient.saveMovement(mapMovement.setValues(
-                    amount, clientDto.getDocument(),
-                    newCredit.getCreditNumber(), Constants.CREATE_CREDIT));
-
-    return newCredit;*/
   }
 
   @Override
@@ -93,7 +78,6 @@ public class CreditServiceImpl implements CreditService {
 
     return creditFlux.hasElements();
 
-    //return !creditList.isEmpty();
   }
 
   @Override
@@ -101,14 +85,9 @@ public class CreditServiceImpl implements CreditService {
 
     Flux<CreditDocument> creditFlux = creditRepository.findByClientDocument(clientDocument);
 
-    //return creditFlux.map(Mappers::mapCreditDocumentToCreditDto);
 
     return creditFlux.map(creditDocument -> mapCredit.mapCreditDocumentToCreditDto(creditDocument));
-    /*if (creditList.isEmpty()) {
-      return new ArrayList<>();
-    }
 
-    return Mappers.mapListCreditDocToListCredit(creditList);*/
   }
 
   @Override
