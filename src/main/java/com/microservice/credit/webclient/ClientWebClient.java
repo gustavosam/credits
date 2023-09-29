@@ -25,9 +25,11 @@ public class ClientWebClient {
    * */
   @CircuitBreaker(name = "circuitBreakerClient", fallbackMethod = "fallbackMethod")
   public Mono<ClientDto> getClient(String document) {
-    return webClientBuilder.build()
+    return webClientBuilder
+            .baseUrl("http://ms-customers")//SE INVOCA AL SERVICIO DE CLIENTES
+            .build()
             .get()
-            .uri("http://localhost:8080/client/{document}", document)
+            .uri("/client/{document}", document)//EUREKA PERMITE LLAMAR AL SERVICIO SOLO CON EL NOMBRE Y EN EL URI COLOCAR EL ENDPOINT
             .retrieve()
             .bodyToMono(ClientDto.class)
 
